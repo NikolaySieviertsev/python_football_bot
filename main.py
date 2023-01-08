@@ -14,14 +14,14 @@ bot = telebot.TeleBot(TOKEN)
 @bot.message_handler(commands=['start'])
 def start(message):
     markup_start_choice = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)  # задали формат кнопок
-    search_by_date_button = types.KeyboardButton("Поиск по дате")
-    search_by_team_button = types.KeyboardButton("Поиск по команде")
-    help = types.KeyboardButton("Помощь")
+    search_by_date_button = types.KeyboardButton("Пошук за датою")
+    search_by_team_button = types.KeyboardButton("Пошук за командою")
+    help = types.KeyboardButton("Допомога")
     markup_start_choice.add(search_by_date_button, search_by_team_button, help)  # добавили кнопки
 
     bot.send_message(
         message.chat.id,
-        "Привет! \nЭто бот для поиска футбольных матчей. \nНажми кнопку чтобы начать...",
+        "Привіт! \nЦе бот для пошуку футбольних матчів. \nНатисни кнопку щоб почати...",
         reply_markup=markup_start_choice)
 
 
@@ -29,9 +29,20 @@ def start(message):
 def help(message):
     bot.send_message(
         message.chat.id,
-        "Чтобы начать использование бота введите команду '/start';"
-        "\nЕсли возникли проблемы — перезапустите бота и нажмите '/start';"
-        "\nЧтобы посмотреть все возможности бота введите '/all_commands'.",
+        "Щоб почати використання боту введіть команду '/start';"
+        "\nЯкщо виникли проблеми — перезапустіть бот і натисніть '/start';"
+        "\nЩоб переглянути всі можливості боту введіть '/all_commands'.",
+    )
+
+@bot.message_handler(commands=['help'])
+def end(message):
+    bot.send_message(
+        message.chat.id,
+        "Пошук завершено успішно!"
+        "\nЯкщо бажаєте продовжити пошук —"
+        "\n— натисніть відповідну кнопку. "
+        "\nАбо скористайтеся командами: "
+        "\n'/search_by_date' та '/search_by_team'.",
     )
 
 
@@ -39,12 +50,12 @@ def help(message):
 def all_commands(message):
     bot.send_message(
         message.chat.id,
-        "Перечень всех команд: "
-        "\n/start — перезапуск бота; "
-        "\n/help — инструкция использования; "
-        "\n/all_commands — перечень возможных команд; "
-        "\n/search_by_date — поиск матчей по дате;"
-        "\n/search_by_team — поиск информации по команде;"
+        "Перелік всіх команд: "
+        "\n/start — перезапуск боту; "
+        "\n/help — інструкція використання; "
+        "\n/all_commands — перелік можливих команд; "
+        "\n/search_by_date — пошук матчів за датою;"
+        "\n/search_by_team — пошук інформації за командою;"
     )
 
 
@@ -52,7 +63,7 @@ def all_commands(message):
 def search_by_date_com(message):
     bot.send_message(
         message.chat.id,
-        "Введите дату в формате: дд.мм.гггг")
+        "Введіть дату у форматі: дд.мм.рррр")
     bot.register_next_step_handler(message, send_matches_by_date)
 
 
@@ -62,7 +73,7 @@ def send_matches_by_date(message):
     if not check_date(msg):
         bot.send_message(
             message.chat.id,
-            "Некорректный ввод. Начните поиск заново"
+            "Некоректний ввід. Почніть пошук ще раз"
         )
         return
     msg.reverse()
@@ -71,7 +82,7 @@ def send_matches_by_date(message):
     if not parser.leagues:
         bot.send_message(
             message.chat.id,
-            "Матчей на эту дату нет. Начните поиск заново"
+            "Матчів на цю дату немає. Почніть пошук ще раз"
         )
     else:
         for i in parser.messages:
@@ -81,13 +92,13 @@ def send_matches_by_date(message):
                 parse_mode="Markdown"
             )
             time.sleep(0.1)
-
+    end(message)
 
 @bot.message_handler(commands=['search_by_team'])
 def search_by_team_com(message):
     bot.send_message(
         message.chat.id,
-        "Введите название футбольной команды:")
+        "Введіть назву футбольної команди:")
     bot.register_next_step_handler(message, search_by_team)
 
 
@@ -96,7 +107,7 @@ def search_by_team(message):
     if not check_team(msg):
         bot.send_message(
             message.chat.id,
-            text="Такой команды нет. Начните поиск заново"
+            text="Такої команди немає. Почніть пошук ще раз"
         )
         return
     parser = TeamParser(msg)
@@ -115,15 +126,15 @@ def search_by_team(message):
             message.chat.id,
             text=news
         )
-
+    end(message)
 
 @bot.message_handler(content_types=['text'])
 def get_text(message):
-    if message.text == "Поиск по дате":
+    if message.text == "Пошук за датою":
         search_by_date_com(message)
-    elif message.text == "Поиск по команде":
+    elif message.text == "Пошук за командою":
         search_by_team_com(message)
-    elif message.text == "Помощь":
+    elif message.text == "Допомога":
         help(message)
 
 
